@@ -1,0 +1,229 @@
+/* --------- BASE --------- */
+body {
+  font-family: "Poppins", sans-serif;
+  background: #d92128;
+  color: #fff;
+  margin: 0;
+  padding: 0;
+
+  /* Tipografia mais fluida */
+  font-size: clamp(14px, 2vw, 18px);
+}
+
+h1, h2, h3 {
+  margin: 0 0 10px;
+  color: #ffcc00;
+
+  /* Mantém títulos adaptáveis */
+  font-size: clamp(20px, 4vw, 32px);
+}
+
+.cabecalho {
+  text-align: center;
+  padding: 20px 10px;
+}
+
+/* Container Central */
+.container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* Caixas */
+.box {
+  background: rgba(255,255,255,0.08);
+  padding: 18px;
+  border-radius: 14px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+
+  /* Layout fluido */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Campos */
+.campo {
+  margin-bottom: 15px;
+}
+
+.campo label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.campo input,
+.campo textarea,
+.campo select {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  border-radius: 10px;
+  border: none;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+  box-sizing: border-box;
+}
+
+/* Campos lado a lado */
+.campo-duplo {
+  display: flex;
+  gap: 15px;
+}
+
+/* Botão principal */
+.btn-principal {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: #ffcc00;
+  color: #d92128;
+  font-weight: bold;
+  font-size: clamp(16px, 4vw, 20px);
+  cursor: pointer;
+  transition: 0.25s;
+}
+
+.btn-principal:hover {
+  background: #e6b800;
+}
+
+/* PIX box */
+.pix {
+  background: rgba(255,255,255,0.15);
+  padding: 14px;
+  border-radius: 12px;
+  margin-top: 12px;
+}
+
+/* Itens do carrinho */
+.item-carrinho {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.12);
+  margin-bottom: 10px;
+  gap: 10px;
+  flex-wrap: wrap; /* Para caber melhor em telas pequenas */
+}
+
+.item-carrinho span {
+  flex: 1;
+}
+
+/* Botão remover */
+.btn-remover {
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: #ff4444;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.btn-remover:hover {
+  background: #cc0000;
+}
+
+/* Esconder */
+.hidden {
+  display: none;
+}
+
+/* -----------------------------------
+   RESPONSIVIDADE — CELULARES
+----------------------------------- */
+@media (max-width: 600px) {
+
+  .container {
+    padding: 10px;
+  }
+
+  .box {
+    padding: 14px;
+  }
+
+  /* Campos duplos viram coluna */
+  .campo-duplo {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .item-carrinho {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .btn-remover {
+    width: 100%;
+    text-align: center;
+    margin-top: 6px;
+  }
+
+  /* Permite que o texto não quebre estranho */
+  h1, h2, h3 {
+    text-align: center;
+  }
+}
+
+/* -----------------------------------
+   RESPONSIVIDADE — TABLET
+----------------------------------- */
+@media (min-width: 600px) and (max-width: 900px) {
+  .container {
+    padding: 16px;
+  }
+
+  .item-carrinho {
+    flex-direction: row;
+  }
+}
+
+/* -----------------------------------
+   TELAS MUITO GRANDES
+----------------------------------- */
+@media (min-width: 1200px) {
+  .container {
+    max-width: 1100px;
+  }
+
+  .box {
+    padding: 24px;
+  }
+
+  .btn-principal {
+    font-size: 1.3rem;
+  }
+}
+.lista-taxas {
+  background: #fff;
+  color: #000; /* ← ISSO DEIXA O TEXTO VISÍVEL */
+  padding: 15px;
+  margin-top: 20px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}
+
+.lista-taxas h3 {
+  margin-bottom: 10px;
+  font-size: 18px;
+  color: #d92128; /* título em vermelho do tema */
+  font-weight: bold;
+}
+
+.lista-taxas ul {
+  padding-left: 18px;
+  margin: 0;
+}
+
+.lista-taxas li {
+  margin-bottom: 6px;
+  font-size: 15px;
+  color: #333; /* texto escuro e legível */
+}
