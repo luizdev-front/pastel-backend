@@ -92,7 +92,7 @@ export default function handler(req, res) {
     if (tipoPagamento === "PIX") {
       mensagem += `🔑 Chave PIX: 13996039919\n`;
       mensagem += `📌 Envie o comprovante aqui no WhatsApp.\n`;
-    }
+    } 
 
     return res.status(200).json({
       mensagem,
