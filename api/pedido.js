@@ -1,62 +1,107 @@
-let numeroGlobal = 0; // contador de pedidos em memória
+let numeroGlobal = 0;
+
+function normalizar(s) {
+  return s.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
 
 const bairrosTaxas = [
-  { bairro: "MARE MANSA", taxa: 4 },
-  { bairro: "VILA RA", taxa: 6 },
-  { bairro: "AREIAO", taxa: 6 },
-  { bairro: "PENINSULA", taxa: 6 },
+  { bairro: "MARÉ MANSA", taxa: 4 },
+  { bairro: "VILA RÃ", taxa: 6 },
+  { bairro: "AREIÃO", taxa: 6 },
+  { bairro: "PENÍNSULA", taxa: 6 },
   { bairro: "PEDREIRA", taxa: 8 },
 ];
 
-const CHAVE_PIX = "13996039919"; // chave PIX segura
-
-const normalizar = (s) =>
-  s.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+const formasPagamentoAceitas = [
+  "PIX",
+  "DINHEIRO",
+  "CARTAO",
+  "CARTÃO",
+];
 
 export default function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).end();
 
-  const { carrinho, cliente, pagamento } = req.body;
+  // 🔥 CORS LIBERADO
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  if (!carrinho || !cliente || !pagamento)
-    return res.status(400).json({ erro: "Dados incompletos" });
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
 
-  const bairroFormatado = normalizar(cliente.bairro);
-  const dadosBairro = bairrosTaxas.find((b) => b.bairro === bairroFormatado);
+  if (req.method !== "POST") {
+    return res.status(405).json({ erro: "Método não permitido" });
+  }
 
-  if (!dadosBairro)
-    return res.status(400).json({ erro: "Bairro não atendido" });
+  try {
+    const { carrinho = [], cliente = {}, pagamento } = req.body;
 
-  numeroGlobal++; // incrementa pedido
-  const numeroPedido = numeroGlobal;
+    if (!carrinho.length || !cliente.nome || !cliente.bairro || !pagamento) {
+      return res.status(400).json({ erro: "Dados incompletos" });
+    }
 
-  const taxa = dadosBairro.taxa;
-  const total = carrinho.reduce((sum, item) => sum + (item.preco || 0), 0);
-  const totalFinal = total + taxa;
+    const bairroInformado = normalizar(cliente.bairro);
 
-  // Monta mensagem para WhatsApp
-  let msg = `📦 *Novo Pedido*\n\n`;
-  carrinho.forEach((item) => {
-    const adicionais = item.adicionais?.length ? ` (${item.adicionais.join(", ")})` : "";
-    msg += `• ${item.nome}${adicionais} – R$ ${item.preco.toFixed(2)}\n`;
-  });
+    const taxaObj = bairrosTaxas.find((b) =>
+      normalizar(b.bairro).includes(bairroInformado) ||
+      bairroInformado.includes(normalizar(b.bairro))
+    );
 
-  msg += `
-🚚 Entrega: R$ ${taxa.toFixed(2)}
-💰 Total: R$ ${totalFinal.toFixed(2)}
+    if (!taxaObj) {
+      return res.status(400).json({ erro: "Bairro não atendido" });
+    }
 
-👤 Nome: ${cliente.nome}
-🏙️ Bairro: ${cliente.bairro}
-📍 Rua: ${cliente.rua}
-🏠 Número: ${cliente.numero}
-📝 Observações: ${cliente.obs || "Nenhuma"}
+    const taxaEntrega = taxaObj.taxa;
+    const totalCarrinho = carrinho.reduce(
+      (acc, item) => acc + (item.preco ? item.preco : 0),
+      0
+    );
+    const totalFinal = totalCarrinho + taxaEntrega;
 
-💳 Pagamento: ${pagamento.toUpperCase()}
-${pagamento === "pix" ? `💸 Chave PIX: ${CHAVE_PIX}\n` : ""}
-🔖 Pedido Nº ${numeroPedido}
+    numeroGlobal++;
+    const numeroPedido = numeroGlobal;
 
-📄 Envie o comprovante após o pagamento.
-`;
+    const tipoPagamento = normalizar(pagamento);
 
-  res.status(200).json({ mensagem: msg, totalFinal, numeroPedido });
+    if (!formasPagamentoAceitas.includes(tipoPagamento)) {
+      return res.status(400).json({ erro: "Forma de pagamento não aceita" });
+    }
+
+    let mensagem = `🍽️ *Pedido nº ${numeroPedido}*\n\n`;
+
+    mensagem += `🛒 *Itens do pedido:*\n`;
+    carrinho.forEach((item) => {
+      const adicionais = item.adicionais?.length
+        ? `\n   ➕ Adicionais: ${item.adicionais.join(", ")}`
+        : "";
+      mensagem += `• ${item.nome} — R$ ${item.preco?.toFixed(2) || "0.00"}${adicionais}\n`;
+    });
+
+    mensagem += `\n🚚 *Taxa de entrega:* R$ ${taxaEntrega.toFixed(2)}\n`;
+    mensagem += `💰 *Total:* R$ ${totalFinal.toFixed(2)}\n\n`;
+
+    mensagem += `👤 *Dados do cliente:*\n`;
+    mensagem += `• Nome: ${cliente.nome}\n`;
+    mensagem += `• Endereço: ${cliente.rua}, nº ${cliente.numero}\n`;
+    mensagem += `• Bairro: ${cliente.bairro}\n`;
+    if (cliente.obs) mensagem += `• Observações: ${cliente.obs}\n`;
+
+    mensagem += `\n💳 *Forma de pagamento:* ${pagamento}\n`;
+
+    if (tipoPagamento === "PIX") {
+      mensagem += `🔑 Chave PIX: 13996039919\n`;
+      mensagem += `📌 Envie o comprovante aqui no WhatsApp.\n`;
+    }
+
+    return res.status(200).json({
+      mensagem,
+      totalFinal,
+      numeroPedido,
+    });
+
+  } catch (err) {
+    console.error("Erro interno:", err);
+    return res.status(500).json({ erro: "Erro interno no servidor" });
+  }
 }
