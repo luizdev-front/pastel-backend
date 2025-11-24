@@ -1,7 +1,22 @@
-let numeroGlobal = 0;
-
 function normalizar(s) {
   return s.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+// Novo gerador de código com data + 3 números aleatórios
+function gerarCodigoPedido() {
+  const hoje = new Date();
+  const dia = hoje.getDate().toString().padStart(2, "0");
+  const mes = (hoje.getMonth() + 1).toString().padStart(2, "0");
+  const numeros = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
+  return `${dia}${mes}-${numeros}`;
+}
+
+// Função para pegar hora atual
+function pegarHorario() {
+  const agora = new Date();
+  const horas = agora.getHours().toString().padStart(2, "0");
+  const minutos = agora.getMinutes().toString().padStart(2, "0");
+  return `${horas}:${minutos}`;
 }
 
 const bairrosTaxas = [
@@ -59,8 +74,9 @@ export default function handler(req, res) {
     );
     const totalFinal = totalCarrinho + taxaEntrega;
 
-    numeroGlobal++;
-    const numeroPedido = numeroGlobal;
+    // Novo código de pedido + hora
+    const numeroPedido = gerarCodigoPedido();
+    const horarioPedido = pegarHorario();
 
     const tipoPagamento = normalizar(pagamento);
 
@@ -68,7 +84,7 @@ export default function handler(req, res) {
       return res.status(400).json({ erro: "Forma de pagamento não aceita" });
     }
 
-    let mensagem = `🍽️ *Pedido nº ${numeroPedido}*\n\n`;
+    let mensagem = `🍽️ Pedido nº ${numeroPedido} — ${horarioPedido}\n\n`;
 
     mensagem += `🛒 *Itens do pedido:*\n`;
     carrinho.forEach((item) => {
@@ -92,12 +108,13 @@ export default function handler(req, res) {
     if (tipoPagamento === "PIX") {
       mensagem += `🔑 Chave PIX: 13996039919\n`;
       mensagem += `📌 Envie o comprovante aqui no WhatsApp.\n`;
-    } 
+    }
 
     return res.status(200).json({
       mensagem,
       totalFinal,
       numeroPedido,
+      horarioPedido,
     });
 
   } catch (err) {
@@ -105,3 +122,4 @@ export default function handler(req, res) {
     return res.status(500).json({ erro: "Erro interno no servidor" });
   }
 }
+
