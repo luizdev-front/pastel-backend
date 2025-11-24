@@ -11,11 +11,13 @@ function gerarCodigoPedido() {
   return `${dia}${mes}-${numeros}`;
 }
 
-// Função para pegar hora atual
+// Função para pegar horário de Brasília (UTC-3)
 function pegarHorario() {
   const agora = new Date();
-  const horas = agora.getHours().toString().padStart(2, "0");
-  const minutos = agora.getMinutes().toString().padStart(2, "0");
+  const utc = agora.getTime() + agora.getTimezoneOffset() * 60000;
+  const brasil = new Date(utc - 3 * 3600000); // Ajuste para UTC-3
+  const horas = brasil.getHours().toString().padStart(2, "0");
+  const minutos = brasil.getMinutes().toString().padStart(2, "0");
   return `${horas}:${minutos}`;
 }
 
@@ -41,13 +43,8 @@ export default function handler(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-
-  if (req.method !== "POST") {
-    return res.status(405).json({ erro: "Método não permitido" });
-  }
+  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method !== "POST") return res.status(405).json({ erro: "Método não permitido" });
 
   try {
     const { carrinho = [], cliente = {}, pagamento } = req.body;
@@ -63,9 +60,7 @@ export default function handler(req, res) {
       bairroInformado.includes(normalizar(b.bairro))
     );
 
-    if (!taxaObj) {
-      return res.status(400).json({ erro: "Bairro não atendido" });
-    }
+    if (!taxaObj) return res.status(400).json({ erro: "Bairro não atendido" });
 
     const taxaEntrega = taxaObj.taxa;
     const totalCarrinho = carrinho.reduce(
@@ -74,12 +69,10 @@ export default function handler(req, res) {
     );
     const totalFinal = totalCarrinho + taxaEntrega;
 
-    // Novo código de pedido + hora
     const numeroPedido = gerarCodigoPedido();
     const horarioPedido = pegarHorario();
 
     const tipoPagamento = normalizar(pagamento);
-
     if (!formasPagamentoAceitas.includes(tipoPagamento)) {
       return res.status(400).json({ erro: "Forma de pagamento não aceita" });
     }
